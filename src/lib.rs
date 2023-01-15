@@ -7,7 +7,7 @@
 extern crate git2;
 
 //
-//
+// List of private modules
 //
 mod misc;
 mod data;
