@@ -1,2 +1,11 @@
+# Known folders
 /target
+
+# Known files
 /Cargo.lock
+
+# Hidden files
+.*
+!/.github
+!/.gitignore
+!/.gitmodules
