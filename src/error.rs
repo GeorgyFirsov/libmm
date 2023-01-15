@@ -8,7 +8,7 @@ use git2;
 
 /// Enumeration with error categories
 #[derive(PartialEq, Eq, Clone, Debug, Copy)]
-pub(crate) enum ErrorCategory {
+pub enum ErrorCategory {
     /// Unspecified error
     Generic,
 
@@ -28,7 +28,7 @@ pub(crate) enum ErrorCategory {
 
 /// Structure, that describes all errors in mm
 #[derive(Debug, PartialEq)]
-pub(crate) struct Error {
+pub struct Error {
     msg: String,
     category: ErrorCategory,
 }
@@ -39,7 +39,7 @@ impl Error {
     /// 
     /// * `s` - string with error description
     /// * `category` - error category (see [`crate::error::ErrorCategory`])
-    pub(crate) fn from_string(s: &str, category: ErrorCategory) -> Self {
+    pub fn from_string(s: &str, category: ErrorCategory) -> Self {
         Error {
             msg: s.to_owned(),
             category: category
@@ -97,4 +97,4 @@ impl From<git2::Error> for Error {
 
 /// Crate-specific alias for [`std::result::Result`] instantiated 
 /// with [`crate::error::Error`]
-pub(crate) type Result<T> = result::Result<T, Error>;
+pub type Result<T> = result::Result<T, Error>;

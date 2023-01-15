@@ -9,7 +9,7 @@ use crate::error::{ Error, Result, ErrorCategory };
 
 
 /// A structure, that describes a repository for notes.
-pub(crate) struct Repository {
+pub struct Repository {
     /// Internal git repository, that manages version control
     internal_repo: git2::Repository,
 
@@ -27,7 +27,7 @@ impl Repository {
     /// Supports opening a repository by its name or a main repo if no name given.
     /// 
     /// * `repo_name` - a name of repository to open (pass `None` to open a main repository)
-    pub(crate) fn open_or_create(repo_name: Option<&str>) -> Result<Self> {
+    pub fn open_or_create(repo_name: Option<&str>) -> Result<Self> {
         //
         // Firstly we need to ensure, that we have repositories folder.
         // App may be run for the first time or data may be erased, so
@@ -57,7 +57,7 @@ impl Repository {
     /// 
     /// * `note` - name of a note to add
     /// * `folder` - optional folder to add note to (pass `None` to add note to root folder)
-    pub(crate) fn add_note(&self, name: &str, folder: Option<&str>) -> Result<PathBuf> {
+    pub fn add_note(&self, name: &str, folder: Option<&str>) -> Result<PathBuf> {
         //
         // Folder name if any must be valid
         //
@@ -104,7 +104,7 @@ impl Repository {
     /// Adds a folder to repository. 
     /// 
     /// * `name` - name of a folder to add
-    pub(crate) fn add_folder(&self, name: &str) -> Result<()> {
+    pub fn add_folder(&self, name: &str) -> Result<()> {
         //
         // Firstly we need to ensure, that we create a valid folder
         //
