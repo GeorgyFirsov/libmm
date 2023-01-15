@@ -1,0 +1,16 @@
+[package]
+name = "libmm"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "libmm"
+path = "./src/lib.rs"
+
+[dependencies]
+
+# Repository support
+git2 = "0.15"
+dirs = "4.0.0"
