@@ -60,6 +60,9 @@ fn create_repository(path: PathBuf) -> Result<git2::Repository> {
     //
 
     misc::create_folder(config_folder.to_owned())?;
-    misc::touch_new_file(config_folder.join(MM_CONFIG_FILE))
-        .and(Ok(repo))
+    misc::touch_new_file(config_folder.join(MM_CONFIG_FILE))?;
+
+    // TODO: stage and commit file
+
+    Ok(repo)
 }
