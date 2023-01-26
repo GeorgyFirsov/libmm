@@ -63,6 +63,8 @@ impl Repository {
 
     /// Adds a note to repository.
     /// 
+    /// Note file MUST exist.
+    /// 
     /// * `note_path` - absolute path to a note to add
     pub fn add_note(&self, note_path: &Path) -> Result<()> {
         //
@@ -88,6 +90,8 @@ impl Repository {
 
 
     /// Adds a folder to repository. 
+    /// 
+    /// Folder MUST exist.
     /// 
     /// * `folder_path` - absolute path to a folder to add
     pub fn add_folder(&self, folder_path: &Path) -> Result<()> {
