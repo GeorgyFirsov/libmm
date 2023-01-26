@@ -51,72 +51,63 @@ impl Repository {
 
         Repository::from_git_repository(internal_repo, repo_name)
     }
+
+
+    /// Obtains a working directory for current repository.
+    pub fn get_workdir(&self) -> Result<&Path> {
+        self.internal_repo
+            .workdir()
+            .ok_or(Error::from_string("cannot get working directory", ErrorCategory::Git))
+    }
     
 
     /// Adds a note to repository.
     /// 
-    /// * `note` - name of a note to add
-    /// * `folder` - optional folder to add note to (pass `None` to add note to root folder)
-    pub fn add_note(&self, name: &str, folder: Option<&str>) -> Result<PathBuf> {
+    /// * `note_path` - absolute path to a note to add
+    pub fn add_note(&self, note_path: &Path) -> Result<()> {
         //
-        // Folder name if any must be valid
-        //
-
-        folder.map_or(Ok(()), helpers::ensure_valid_folder)?;
-
-        //
-        // Firstly check a folder for existence. If it does not exist,
-        // then it must be created.
+        // First check existence of a note and that path 
+        // is actually absolute path to a file
         //
 
-        let workdir = self.get_workdir()?;
-        let folder_path = workdir.join(folder.unwrap_or("" /* append nothing for root */));
-        if !folder_path.exists() {
-            //
-            // Workdir is already present, so I can unwrap folder parameter.
-            // It cannot be None or empty here.
-            //
-
-            self.add_folder_internal(folder.unwrap(), workdir)?;
+        if !note_path.exists() || !note_path.is_file() || !note_path.is_absolute() {
+            return Err(Error::from_string("invalid absolute note path", ErrorCategory::Os));
         }
 
         //
-        // Now let's try to create a new file. This call should fail, if it exists.
+        // And now let's add a note if it is actually located
+        // in current repository
         //
 
-        let note_path = folder_path.join(name);
-        misc::touch_new_file(&note_path)?;
-
-        //
-        // Now let's add the new file to repository and return its path
-        //
-
-        let relative_note_path = note_path
+        let workdir = self.get_workdir()?;
+        note_path
             .strip_prefix(workdir)
-            .expect("workdir is not a prefix of path");
-
-        self.add_note_internal(relative_note_path)?;
-
-        Ok(note_path)
+            .map_err(Error::from)
+            .and_then(|relative_path| self.add_note_internal(relative_path))
     }
 
 
     /// Adds a folder to repository. 
     /// 
-    /// * `name` - name of a folder to add
-    pub fn add_folder(&self, name: &str) -> Result<()> {
+    /// * `folder_path` - absolute path to a folder to add
+    pub fn add_folder(&self, folder_path: &Path) -> Result<()> {
         //
         // Firstly we need to ensure, that we create a valid folder
         //
 
-        helpers::ensure_valid_folder(name)?;
+        if !folder_path.exists() || !folder_path.is_dir() || !folder_path.is_absolute() {
+            return Err(Error::from_string("invalid absolute folder path", ErrorCategory::Os));
+        }
 
         //
         // Just create a directory. Nothing else is required.
         //
 
-        self.get_workdir()
-            .and_then(|workdir| self.add_folder_internal(name, workdir))
+        let workdir = self.get_workdir()?;
+        folder_path
+            .strip_prefix(workdir)
+            .map_err(Error::from)
+            .and_then(|relative_path| self.add_folder_internal(relative_path))
     }
 
 
@@ -147,11 +138,23 @@ impl Repository {
     /// Calls `git2::Index::add_all` in order to take `.gitignore` into 
     /// account, because `git2::Index::add_path` forces files to be added.
     /// 
-    /// * `path` - relative to working directory path to the note
-    fn add_note_internal(&self, path: &Path) -> Result<()> {
+    /// * `relative_path` - relative to working directory path to the note
+    fn add_note_internal(&self, relative_path: &Path) -> Result<()> {
+        //
+        // Let's add folder first (skip step for notes in repository's root)
+        //
+
+        if let Some(parent) = relative_path.parent() {
+            self.add_folder_internal(parent)?;
+        }
+
+        //
+        // And now add note itself
+        //
+
         self.internal_repo
             .index()
-            .and_then(|mut index| index.add_all([path].iter(), git2::IndexAddOption::DEFAULT, None))
+            .and_then(|mut index| index.add_all([relative_path].iter(), git2::IndexAddOption::DEFAULT, None))
             .map_err(Error::from)
     }
 
@@ -161,17 +164,17 @@ impl Repository {
     /// Used for optimization: sometimes workdir is already known, so we can 
     /// skip its acquisition.
     /// 
-    /// * `name` - name of a folder to add
-    /// * `workdir` - repo's working directory
-    fn add_folder_internal(&self, name: &str, workdir: &Path) -> Result<()> {
-        misc::create_folder(workdir.join(name))
-    }
+    /// * `relative_path` - relative to working directory path to the folder
+    fn add_folder_internal(&self, relative_path: &Path) -> Result<()> {
+        if relative_path.as_os_str().is_empty() {
+            //
+            // Adding repository's root is a normal case but we don't 
+            // need to do anything
+            //
 
+            return Ok(());
+        }
 
-    /// Obtains a working directory for current repository.
-    fn get_workdir(&self) -> Result<&Path> {
-        self.internal_repo
-            .workdir()
-            .ok_or(Error::from_string("cannot get working directory", ErrorCategory::Git))
+        Ok(())
     }
 }

@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
-use super::{ MM_REPOS_SUBFOLDER, MM_MAIN_REPO_NAME };
-use crate::data;
+use super::{ MM_REPOS_SUBFOLDER, MM_MAIN_REPO_NAME, MM_CONFIG_FILE, MM_CONFIG_FOLDER };
+use crate::{data, misc};
 use crate::error::{ Result, Error, ErrorCategory };
 
 
@@ -37,24 +37,29 @@ pub(super) fn get_repo_path(repo_name: &Option<&str>) -> Option<PathBuf> {
 /// * `path` - path to the repository's directory
 pub(super) fn open_or_create_repository(path: PathBuf) -> Result<git2::Repository> {
     git2::Repository::open(path.to_owned())
-        .or_else(|_error| git2::Repository::init(path))
+        .or_else(|_error| create_repository(path))
         .map_err(Error::from)
 }
 
 
-/// Verifies, that `name` is a valid name for folder with notes.
+/// Creates a git repository with a configuration file
 /// 
-/// Checks if it is not empty and contains only one level
-/// of structure (names with slashes are considered invalid).
-/// 
-/// * `name` - name of folder to verify
-pub(super) fn ensure_valid_folder(name: &str) -> Result<()> {
-    let valid = 
-        !name.is_empty() && 
-        !name.contains("/") && 
-        !name.contains("\\");
+/// * `path` - path to the repository's directory
+fn create_repository(path: PathBuf) -> Result<git2::Repository> {
+    //
+    // Fistly create a repository
+    //
 
-    valid
-        .then_some(())
-        .ok_or(Error::from_string(format!("invalid folder name: '{}'", name).as_str(), ErrorCategory::Repo))
+    let repo = git2::Repository::init(path)?;
+    let config_folder = repo.workdir()
+        .map(|workdir| workdir.join(MM_CONFIG_FOLDER))
+        .ok_or(Error::from_string("cannot get repository's working directory", ErrorCategory::Git))?;
+
+    //
+    // Now we need to create a configuration file inside of a special folder
+    //
+
+    misc::create_folder(config_folder.to_owned())?;
+    misc::touch_new_file(config_folder.join(MM_CONFIG_FILE))
+        .and(Ok(repo))
 }

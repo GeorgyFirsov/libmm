@@ -1,6 +1,7 @@
 use std;
 use std::io;
 use std::fmt;
+use std::path;
 use std::result;
 
 use git2;
@@ -79,6 +80,15 @@ impl std::error::Error for Error {
 
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Self {
+        let mut res = Error::from_error(err);
+        res.category = ErrorCategory::Os;
+        res
+    }
+}
+
+
+impl From<path::StripPrefixError> for Error {
+    fn from(err: path::StripPrefixError) -> Self {
         let mut res = Error::from_error(err);
         res.category = ErrorCategory::Os;
         res
