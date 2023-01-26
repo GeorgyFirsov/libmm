@@ -15,18 +15,25 @@ If contains the following components:
 
 ## Build
 
-If you want to build library for `mm` itself, so you have to read *Build* section 
+If you want to build library for `mm` itself, so you have to read [Build][2] section
 in the [main repository][1] readme.
 
 Building for custom frontend:
 
-1. Add library to you Cargo.toml:
+1. Clone repository recursively (i.e. with submodules):
+
+```bash
+git clone --recursive https://github.com/GeorgyFirsov/libmm.git
+```
+
+2. Add library to you Cargo.toml:
 
 ```toml
 [dependencies]
 libmm = { path = "/path/to/libmm" }
 ```
 
-2. Build your main project.
+3. Build your main project.
 
 [1]: https://github.com/GeorgyFirsov/mm
+[2]: https://github.com/GeorgyFirsov/mm#build
