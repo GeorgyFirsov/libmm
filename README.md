@@ -7,7 +7,7 @@
 > Main repository: [mm][1] (there you can find some project documentation).
 
 This library implements a backend for `mm` notes app.
-If contains the following components:
+It contains the following components:
 
 - [ ] repositories
 - [ ] configuration
