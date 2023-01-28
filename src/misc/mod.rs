@@ -1,4 +1,4 @@
-pub mod misc;
+mod misc;
 
 pub(crate) use self::misc::{ 
     create_folder, 
