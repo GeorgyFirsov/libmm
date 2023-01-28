@@ -1,7 +1,7 @@
 mod cfg;
 
 
-pub(crate) use self::cfg::{ create_default };
+pub(crate) use self::cfg::{ Config };
 
 
 /// A key in config, that is responsible for all git configuration items

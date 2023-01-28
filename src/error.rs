@@ -28,6 +28,9 @@ pub enum ErrorCategory {
 
     /// I/O error
     IO,
+
+    /// Configuration
+    Config,
 }
 
 

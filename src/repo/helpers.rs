@@ -82,7 +82,8 @@ fn create_repository(path: &Path) -> Result<git2::Repository> {
 
     let config_file = get_config_file(workdir); 
     misc::touch_new_file(&config_file)?;
-    cfg::create_default(&config_file)?;
+    cfg::Config::new()
+        .save(&config_file)?;
 
     // TODO: stage and commit file
 
