@@ -55,9 +55,7 @@ impl Repository {
 
     /// Obtains a working directory for current repository.
     pub fn get_workdir(&self) -> Result<&Path> {
-        self.internal_repo
-            .workdir()
-            .ok_or(Error::from_string("cannot get working directory", ErrorCategory::Git))
+        helpers::get_workdir(&self.internal_repo)
     }
     
 
