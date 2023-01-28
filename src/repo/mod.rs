@@ -2,7 +2,7 @@ mod helpers;
 mod repository;
 
 
-pub use self::repository::{ Repository };
+pub use self::repository::{Repository};
 
 
 /// Path to repositories relative to mm's data folder.

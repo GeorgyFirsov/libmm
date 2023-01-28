@@ -1,8 +1,4 @@
-use std;
-use std::io;
-use std::fmt;
-use std::path;
-use std::result;
+use std::{io, fmt, path, result};
 
 use git2;
 use serde_json;
@@ -28,6 +24,9 @@ pub enum ErrorCategory {
 
     /// I/O error
     IO,
+
+    /// Configuration
+    Config,
 }
 
 
