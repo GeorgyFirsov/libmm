@@ -4,7 +4,7 @@ use git2;
 
 use super::{MM_MAIN_REPO_NAME};
 use super::helpers;
-use crate::misc;
+use crate::{misc, cfg};
 use crate::error::{Error, Result, ErrorCategory};
 
 
@@ -18,6 +18,9 @@ pub struct Repository {
 
     /// Optional list of remotes. `None` if repository has no remotes
     remotes: Option<git2::string_array::StringArray>,
+
+    /// Repository's configuration
+    config: cfg::Config
 }
 
 
@@ -123,6 +126,8 @@ impl Repository {
             .remotes()
             .ok();
 
+        let config_file = helpers::get_config_file(&repo)?;
+
         Ok(Repository { 
             internal_repo: repo, 
 
@@ -131,6 +136,8 @@ impl Repository {
                 .to_owned(), 
 
             remotes: remotes,
+
+            config: cfg::Config::load(&config_file)?
         })
     }
 
