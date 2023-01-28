@@ -41,6 +41,29 @@ impl Config {
     }
 
 
+    /// Loads configuration from a file.
+    /// 
+    /// * `config_file` - path to a file to read configuration from
+    pub(crate) fn load(config_file: &Path) -> Result<Config> {
+        let file_content = fs::read(config_file)?;
+
+        //
+        // Create a JSON instance and validate it
+        //
+
+        let raw_config = sj::from_slice(file_content.as_slice())?;
+        Config::validate(&raw_config)?;
+
+        //
+        // Here is everything OK
+        //
+
+        Ok(Config {
+            internal: raw_config
+        })
+    }
+
+
     /// Saves a configuration into a file.
     /// 
     /// * `config_file` - path to a file to write config to
@@ -51,6 +74,14 @@ impl Config {
 
         let json = sj::to_string_pretty(&self.internal)?;
         fs::write(config_file, json)?;
+
+        Ok(())
+    }
+
+
+    /// Validates a JSON object currently stored in a configuration instance
+    fn validate(raw_config: &sj::Value) -> Result<()> {
+        // TODO: validation against JSON schema
 
         Ok(())
     }
