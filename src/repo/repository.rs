@@ -1,11 +1,11 @@
-use std::path::{ Path, PathBuf };
+use std::path::Path;
 
 use git2;
 
-use super::{ MM_MAIN_REPO_NAME };
+use super::{MM_MAIN_REPO_NAME};
 use super::helpers;
 use crate::misc;
-use crate::error::{ Error, Result, ErrorCategory };
+use crate::error::{Error, Result, ErrorCategory};
 
 
 /// A structure, that describes a repository for notes.

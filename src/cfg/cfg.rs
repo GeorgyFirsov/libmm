@@ -3,7 +3,7 @@ use std::path::Path;
 
 use serde_json as sj;
 
-use crate::error::{ Error, Result };
+use crate::error::Result;
 use super::{ 
     MM_CONFIG_GIT_KEY, 
     MM_CONFIG_GIT_USE_DEFAULT_KEY,

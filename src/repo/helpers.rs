@@ -1,8 +1,8 @@
-use std::path::{ Path, PathBuf };
+use std::path::{Path, PathBuf};
 
-use super::{ MM_REPOS_SUBFOLDER, MM_MAIN_REPO_NAME, MM_CONFIG_FILE, MM_CONFIG_FOLDER };
-use crate::{ data, misc, cfg };
-use crate::error::{ Result, Error, ErrorCategory };
+use super::{MM_REPOS_SUBFOLDER, MM_MAIN_REPO_NAME, MM_CONFIG_FILE, MM_CONFIG_FOLDER};
+use crate::{data, misc, cfg};
+use crate::error::{Result, Error, ErrorCategory};
 
 
 /// Get full repositories folder path.

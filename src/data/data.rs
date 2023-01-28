@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use dirs;
 
-use super::{ MM_DATA_FOLDER };
+use super::{MM_DATA_FOLDER};
 
 
 /// Get full path to a folder with mm's data
