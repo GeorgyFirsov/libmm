@@ -5,6 +5,7 @@ use std::path;
 use std::result;
 
 use git2;
+use serde_json;
 
 
 /// Enumeration with error categories
@@ -24,6 +25,9 @@ pub enum ErrorCategory {
 
     /// Editor error
     Editor,
+
+    /// I/O error
+    IO,
 }
 
 
@@ -100,6 +104,15 @@ impl From<git2::Error> for Error {
     fn from(err: git2::Error) -> Self {
         let mut res = Error::from_error(err);
         res.category = ErrorCategory::Git;
+        res
+    }
+}
+
+
+impl From<serde_json::Error> for Error {
+    fn from(err: serde_json::Error) -> Self {
+        let mut res = Error::from_error(err);
+        res.category = ErrorCategory::IO;
         res
     }
 }

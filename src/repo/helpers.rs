@@ -1,7 +1,7 @@
 use std::path::{ Path, PathBuf };
 
 use super::{ MM_REPOS_SUBFOLDER, MM_MAIN_REPO_NAME, MM_CONFIG_FILE, MM_CONFIG_FOLDER };
-use crate::{data, misc};
+use crate::{ data, misc, cfg };
 use crate::error::{ Result, Error, ErrorCategory };
 
 
@@ -79,7 +79,10 @@ fn create_repository(path: &Path) -> Result<git2::Repository> {
     //
 
     misc::create_folder(get_config_girectory(workdir))?;
-    misc::touch_new_file(get_config_file(workdir))?;
+
+    let config_file = get_config_file(workdir); 
+    misc::touch_new_file(&config_file)?;
+    cfg::create_default(&config_file)?;
 
     // TODO: stage and commit file
 
