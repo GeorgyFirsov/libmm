@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::ops::Drop;
 
 use git2;
 
@@ -184,6 +185,22 @@ impl Repository {
             return Ok(());
         }
 
+        // TODO: add to configuration
+
         Ok(())
+    }
+}
+
+
+impl Drop for Repository {
+    fn drop(&mut self) {
+        let config_file = helpers::get_config_file(&self.internal_repo)
+            .expect("cannot get repository's config file at destruction");
+
+        self.config
+            .save(&config_file)
+            .expect("cannot save configuration at destruction");
+
+        // TODO: stage and commit
     }
 }
