@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{ Path, PathBuf };
 
 use super::{ MM_REPOS_SUBFOLDER, MM_MAIN_REPO_NAME, MM_CONFIG_FILE, MM_CONFIG_FOLDER };
 use crate::{data, misc};
@@ -32,12 +32,32 @@ pub(super) fn get_repo_path(repo_name: &Option<&str>) -> Option<PathBuf> {
 }
 
 
+/// Returns path to a repository's configuration folder 
+/// by it's working directory.
+/// 
+/// * `repo_workdir` - repository's working directory
+pub(super) fn get_config_girectory(repo_workdir: &Path) -> PathBuf {
+    repo_workdir
+        .join(MM_CONFIG_FOLDER)
+}
+
+
+/// Returns path to a repository's configuation file
+/// by it's working directory.
+/// 
+/// * `repo_workdir` - repository's working directory
+pub(super) fn get_config_file(repo_workdir: &Path) -> PathBuf {
+    get_config_girectory(repo_workdir)
+        .join(MM_CONFIG_FILE)
+}
+
+
 /// Open or create a git repository by its path.
 /// 
 /// * `path` - path to the repository's directory
 pub(super) fn open_or_create_repository(path: PathBuf) -> Result<git2::Repository> {
     git2::Repository::open(path.to_owned())
-        .or_else(|_error| create_repository(path))
+        .or_else(|_error| create_repository(&path))
         .map_err(Error::from)
 }
 
@@ -45,22 +65,21 @@ pub(super) fn open_or_create_repository(path: PathBuf) -> Result<git2::Repositor
 /// Creates a git repository with a configuration file
 /// 
 /// * `path` - path to the repository's directory
-fn create_repository(path: PathBuf) -> Result<git2::Repository> {
+fn create_repository(path: &Path) -> Result<git2::Repository> {
     //
     // Fistly create a repository
     //
 
     let repo = git2::Repository::init(path)?;
-    let config_folder = repo.workdir()
-        .map(|workdir| workdir.join(MM_CONFIG_FOLDER))
-        .ok_or(Error::from_string("cannot get repository's working directory", ErrorCategory::Git))?;
+    let workdir = repo.workdir()
+        .ok_or(Error::from_string("cannot get working directory", ErrorCategory::Git))?;
 
     //
     // Now we need to create a configuration file inside of a special folder
     //
 
-    misc::create_folder(config_folder.to_owned())?;
-    misc::touch_new_file(config_folder.join(MM_CONFIG_FILE))?;
+    misc::create_folder(get_config_girectory(workdir))?;
+    misc::touch_new_file(get_config_file(workdir))?;
 
     // TODO: stage and commit file
 
