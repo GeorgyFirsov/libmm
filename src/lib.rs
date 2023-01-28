@@ -5,12 +5,14 @@
 //! to get back to any state.
 
 extern crate git2;
+extern crate serde_json;
 
 //
 // List of private modules
 //
 mod misc;
 mod data;
+mod cfg;
 
 //
 // List of public modules
