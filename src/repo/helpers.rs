@@ -78,8 +78,6 @@ fn create_repository(path: &Path) -> Result<git2::Repository> {
     //
 
     let repo = git2::Repository::init(path)?;
-    let workdir = repo.workdir()
-        .ok_or(Error::from_string("cannot get working directory", ErrorCategory::Git))?;
 
     //
     // Now we need to create a configuration file inside of a special folder
