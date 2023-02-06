@@ -59,6 +59,27 @@ pub(super) fn get_config_file(repo: &git2::Repository) -> Result<PathBuf> {
 }
 
 
+///
+pub(super) fn commit_files<T, I>(repo: &git2::Repository, config: &cfg::Config, pathspecs: I) -> Result<()>
+where
+    T: git2::IntoCString,
+    I: IntoIterator<Item = T>
+{
+    //
+    // First of all, we need to stage all the changes
+    //
+
+    repo.index()
+        .and_then(|mut index| index.add_all(pathspecs, git2::IndexAddOption::DEFAULT, None))?;
+
+    //
+    // TODO: commit files
+    //
+
+    Ok(())
+}
+
+
 /// Open or create a git repository by its path.
 /// 
 /// * `path` - path to the repository's directory

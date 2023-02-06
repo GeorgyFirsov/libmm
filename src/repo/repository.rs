@@ -162,10 +162,7 @@ impl Repository {
         // And now add note itself
         //
 
-        self.internal_repo
-            .index()
-            .and_then(|mut index| index.add_all([relative_path].iter(), git2::IndexAddOption::DEFAULT, None))
-            .map_err(Error::from)
+        helpers::commit_files(&self.internal_repo, &self.config, [relative_path].iter())
     }
 
 
