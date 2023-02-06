@@ -86,7 +86,10 @@ where
     //
 
     let mut index = repo.index()?;
+    
     index.add_all(pathspecs, git2::IndexAddOption::DEFAULT, None)?;
+    index.write()?;
+
     let tree_oid = index.write_tree()?;
 
     //
