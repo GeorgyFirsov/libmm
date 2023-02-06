@@ -104,23 +104,24 @@ where
     //
     // Well... Here I need a slice with references for parents container,
     // hence I MUST do it in the following scary way :(
+    // Error is ignored intentionally
     //
 
-    if let Ok(head_oid) = repo.refname_to_id(MM_GIT_HEAD_REF) {
-        //
-        // Set HEAD as parent for the new commit
-        //
+    let head = repo
+        .refname_to_id(MM_GIT_HEAD_REF)
+        .and_then(|head_oid| repo.find_commit(head_oid))
+        .ok();
 
-        let head = repo.find_commit(head_oid)?;
-        repo.commit(Some(MM_GIT_HEAD_REF), &author, &author, message, &tree, &[&head])?;
-    }
-    else {
-        //
-        // Very first commit (no HEAD present => no parent for the new commit)
-        //
+    let head_holder;
+    let parents = match head.as_ref() {
+        Some(head) => {
+            head_holder = [head];
+            &head_holder[..]
+        },
+        _ => &[]
+    };
 
-        repo.commit(Some(MM_GIT_HEAD_REF), &author, &author, message, &tree, &[])?;
-    }
+    repo.commit(Some(MM_GIT_HEAD_REF), &author, &author, message, &tree, parents)?;
 
     Ok(())
 }
