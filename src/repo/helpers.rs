@@ -95,10 +95,11 @@ where
 
     let tree = repo.find_tree(tree_oid)?;
     let author = git2::Signature::now(config.query_name()?, config.query_email()?)?;
+    let parent = repo.find_commit(repo.refname_to_id("HEAD")?)?;
     let message = message
         .unwrap_or(MM_DEFAULT_COMMIT_MESSAGE);
 
-    repo.commit(Some(MM_GIT_REF), &author, &author, message, &tree, &[])?;
+    repo.commit(Some(MM_GIT_REF), &author, &author, message, &tree, &[&parent])?;
 
     Ok(())
 }
@@ -143,7 +144,7 @@ fn create_repository(path: &Path) -> Result<git2::Repository> {
 
     let workdir = get_workdir(&repo)?;
     let relative_path = config_file.strip_prefix(workdir)?;
-    
+
     commit_files(&repo, &config, [relative_path].iter(), Some(MM_INITIAL_COMMIT_MESSAGE))?;
 
     //
