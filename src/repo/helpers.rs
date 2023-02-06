@@ -1,8 +1,16 @@
 use std::path::{Path, PathBuf};
 
-use super::{MM_REPOS_SUBFOLDER, MM_MAIN_REPO_NAME, MM_CONFIG_FILE, MM_CONFIG_FOLDER};
 use crate::{data, misc, cfg};
 use crate::error::{Result, Error, ErrorCategory};
+use super::{
+    MM_REPOS_SUBFOLDER, 
+    MM_MAIN_REPO_NAME,
+    MM_CONFIG_FILE, 
+    MM_CONFIG_FOLDER,
+    MM_GIT_REF,
+    MM_INITIAL_COMMIT_MESSAGE,
+    MM_DEFAULT_COMMIT_MESSAGE,
+};
 
 
 /// Get full repositories folder path.
@@ -59,8 +67,16 @@ pub(super) fn get_config_file(repo: &git2::Repository) -> Result<PathBuf> {
 }
 
 
-///
-pub(super) fn commit_files<T, I>(repo: &git2::Repository, config: &cfg::Config, pathspecs: I) -> Result<()>
+/// Stages and commits all specified files.
+/// 
+/// * `repo` - reference to git repository instance
+/// * `config` - reference to configuration instance
+/// * `pathspecs` - list of files to be committed (paths 
+///                 MUST be relative to the repository's 
+///                 working directory)
+/// * `message` - optional commit message (default one is 
+///               [`super::MM_DEFAULT_COMMIT_MESSAGE`])
+pub(super) fn commit_files<T, I>(repo: &git2::Repository, config: &cfg::Config, pathspecs: I, message: Option<&str>) -> Result<()>
 where
     T: git2::IntoCString,
     I: IntoIterator<Item = T>
@@ -69,12 +85,20 @@ where
     // First of all, we need to stage all the changes
     //
 
-    repo.index()
-        .and_then(|mut index| index.add_all(pathspecs, git2::IndexAddOption::DEFAULT, None))?;
+    let mut index = repo.index()?;
+    index.add_all(pathspecs, git2::IndexAddOption::DEFAULT, None)?;
+    let tree_oid = index.write_tree()?;
 
     //
-    // TODO: commit files
+    // Now let's create a commit
     //
+
+    let tree = repo.find_tree(tree_oid)?;
+    let author = git2::Signature::now(config.query_name()?, config.query_email()?)?;
+    let message = message
+        .unwrap_or(MM_DEFAULT_COMMIT_MESSAGE);
+
+    repo.commit(Some(MM_GIT_REF), &author, &author, message, &tree, &[])?;
 
     Ok(())
 }
@@ -113,7 +137,18 @@ fn create_repository(path: &Path) -> Result<git2::Repository> {
     let config = cfg::Config::new()?;
     config.save(&config_file)?;
 
-    // TODO: stage and commit file
+    //
+    // To commit config file I need to convert its path to the relative one
+    //
+
+    let workdir = get_workdir(&repo)?;
+    let relative_path = config_file.strip_prefix(workdir)?;
+    
+    commit_files(&repo, &config, [relative_path].iter(), Some(MM_INITIAL_COMMIT_MESSAGE))?;
+
+    //
+    // Done for now!
+    //
 
     Ok(repo)
 }

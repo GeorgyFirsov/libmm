@@ -161,8 +161,9 @@ impl Repository {
         //
         // And now add note itself
         //
-
-        helpers::commit_files(&self.internal_repo, &self.config, [relative_path].iter())
+        
+        helpers::commit_files(&self.internal_repo, &self.config, 
+                              [relative_path].iter(), Some(&format!("chore: {:?} added", relative_path)))
     }
 
 
