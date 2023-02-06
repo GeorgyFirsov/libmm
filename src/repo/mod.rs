@@ -18,7 +18,7 @@ const MM_CONFIG_FOLDER: &str = ".mm";
 const MM_CONFIG_FILE: &str = "mm_config.json";
 
 /// Reference being updated in git repositories
-const MM_GIT_REF: &str = "HEAD";
+const MM_GIT_HEAD_REF: &str = "HEAD";
 
 /// Message for initial commit
 const MM_INITIAL_COMMIT_MESSAGE: &str = "chore: initial commit";

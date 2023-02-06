@@ -7,7 +7,7 @@ use super::{
     MM_MAIN_REPO_NAME,
     MM_CONFIG_FILE, 
     MM_CONFIG_FOLDER,
-    MM_GIT_REF,
+    MM_GIT_HEAD_REF,
     MM_INITIAL_COMMIT_MESSAGE,
     MM_DEFAULT_COMMIT_MESSAGE,
 };
@@ -95,11 +95,29 @@ where
 
     let tree = repo.find_tree(tree_oid)?;
     let author = git2::Signature::now(config.query_name()?, config.query_email()?)?;
-    let parent = repo.find_commit(repo.refname_to_id("HEAD")?)?;
     let message = message
         .unwrap_or(MM_DEFAULT_COMMIT_MESSAGE);
 
-    repo.commit(Some(MM_GIT_REF), &author, &author, message, &tree, &[&parent])?;
+    //
+    // Well... Here I need a slice with references for parents container,
+    // hence I MUST do it in the following scary way :(
+    //
+
+    if let Ok(head_oid) = repo.refname_to_id(MM_GIT_HEAD_REF) {
+        //
+        // Set HEAD as parent for the new commit
+        //
+
+        let head = repo.find_commit(head_oid)?;
+        repo.commit(Some(MM_GIT_HEAD_REF), &author, &author, message, &tree, &[&head])?;
+    }
+    else {
+        //
+        // Very first commit (no HEAD present => no parent for the new commit)
+        //
+
+        repo.commit(Some(MM_GIT_HEAD_REF), &author, &author, message, &tree, &[])?;
+    }
 
     Ok(())
 }
