@@ -16,3 +16,12 @@ const MM_CONFIG_FOLDER: &str = ".mm";
 
 /// Name of configuration file, that is located in each repository
 const MM_CONFIG_FILE: &str = "mm_config.json";
+
+/// Reference being updated in git repositories
+const MM_GIT_HEAD_REF: &str = "HEAD";
+
+/// Message for initial commit
+const MM_INITIAL_COMMIT_MESSAGE: &str = "chore: initial commit";
+
+/// Default commit message (if no one is specified)
+const MM_DEFAULT_COMMIT_MESSAGE: &str = "chore: several files updated";

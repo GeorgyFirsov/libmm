@@ -1,8 +1,16 @@
 use std::path::{Path, PathBuf};
 
-use super::{MM_REPOS_SUBFOLDER, MM_MAIN_REPO_NAME, MM_CONFIG_FILE, MM_CONFIG_FOLDER};
 use crate::{data, misc, cfg};
 use crate::error::{Result, Error, ErrorCategory};
+use super::{
+    MM_REPOS_SUBFOLDER, 
+    MM_MAIN_REPO_NAME,
+    MM_CONFIG_FILE, 
+    MM_CONFIG_FOLDER,
+    MM_GIT_HEAD_REF,
+    MM_INITIAL_COMMIT_MESSAGE,
+    MM_DEFAULT_COMMIT_MESSAGE,
+};
 
 
 /// Get full repositories folder path.
@@ -59,6 +67,62 @@ pub(super) fn get_config_file(repo: &git2::Repository) -> Result<PathBuf> {
 }
 
 
+/// Stages and commits all specified files.
+/// 
+/// * `repo` - reference to git repository instance
+/// * `config` - reference to configuration instance
+/// * `pathspecs` - list of files to be committed (paths 
+///                 MUST be relative to the repository's 
+///                 working directory)
+/// * `message` - optional commit message (default one is 
+///               [`super::MM_DEFAULT_COMMIT_MESSAGE`])
+pub(super) fn commit_files<T, I>(repo: &git2::Repository, config: &cfg::Config, pathspecs: I, message: Option<&str>) -> Result<()>
+where
+    T: git2::IntoCString,
+    I: IntoIterator<Item = T>
+{
+    //
+    // First of all, we need to stage all the changes
+    //
+
+    let mut index = repo.index()?;
+    index.add_all(pathspecs, git2::IndexAddOption::DEFAULT, None)?;
+    let tree_oid = index.write_tree()?;
+
+    //
+    // Now let's create a commit
+    //
+
+    let tree = repo.find_tree(tree_oid)?;
+    let author = git2::Signature::now(config.query_name()?, config.query_email()?)?;
+    let message = message
+        .unwrap_or(MM_DEFAULT_COMMIT_MESSAGE);
+
+    //
+    // Well... Here I need a slice with references for parents container,
+    // hence I MUST do it in the following scary way :(
+    //
+
+    if let Ok(head_oid) = repo.refname_to_id(MM_GIT_HEAD_REF) {
+        //
+        // Set HEAD as parent for the new commit
+        //
+
+        let head = repo.find_commit(head_oid)?;
+        repo.commit(Some(MM_GIT_HEAD_REF), &author, &author, message, &tree, &[&head])?;
+    }
+    else {
+        //
+        // Very first commit (no HEAD present => no parent for the new commit)
+        //
+
+        repo.commit(Some(MM_GIT_HEAD_REF), &author, &author, message, &tree, &[])?;
+    }
+
+    Ok(())
+}
+
+
 /// Open or create a git repository by its path.
 /// 
 /// * `path` - path to the repository's directory
@@ -88,10 +152,22 @@ fn create_repository(path: &Path) -> Result<git2::Repository> {
 
     let config_file = get_config_file(&repo)?; 
     misc::touch_new_file(&config_file)?;
-    cfg::Config::new()
-        .save(&config_file)?;
 
-    // TODO: stage and commit file
+    let config = cfg::Config::new()?;
+    config.save(&config_file)?;
+
+    //
+    // To commit config file I need to convert its path to the relative one
+    //
+
+    let workdir = get_workdir(&repo)?;
+    let relative_path = config_file.strip_prefix(workdir)?;
+
+    commit_files(&repo, &config, [relative_path].iter(), Some(MM_INITIAL_COMMIT_MESSAGE))?;
+
+    //
+    // Done for now!
+    //
 
     Ok(repo)
 }

@@ -43,9 +43,12 @@ impl Error {
     /// 
     /// * `s` - string with error description
     /// * `category` - error category (see [`crate::error::ErrorCategory`])
-    pub fn from_string(s: &str, category: ErrorCategory) -> Self {
+    pub fn from_string<S>(s: S, category: ErrorCategory) -> Self 
+    where
+        S: Into<String>
+    {
         Error {
-            msg: s.to_owned(),
+            msg: s.into(),
             category: category
         }
     }
