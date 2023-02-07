@@ -7,6 +7,8 @@ use git2;
 use crate::error::{Result, Error, ErrorCategory};
 use super::{ 
     MM_GIT_KEY, 
+    MM_FOLDERS_KEY,
+    MM_LIST_KEY,
     MM_GIT_USE_DEFAULT_KEY,
     MM_GIT_EMAIL_KEY,
     MM_GIT_NAME_KEY,
@@ -34,7 +36,11 @@ impl Config {
         let default_config = sj::json!({
             MM_GIT_KEY: {
                 MM_GIT_USE_DEFAULT_KEY: true,
-            }
+            },
+
+            MM_FOLDERS_KEY : {
+                MM_LIST_KEY: []
+            },
         });
 
         //
@@ -86,9 +92,27 @@ impl Config {
     }
 
 
+    /// Query list of folders for repository
+    pub(crate) fn query_folders_list(&self) -> Result<Vec<&str>> {
+        let section = self.query_section(MM_FOLDERS_KEY)?;
+
+        let folders = section
+            .get(MM_LIST_KEY)
+            .and_then(|folders| folders.as_array())
+            .ok_or(Error::from_string("corrupt or missing folders list", ErrorCategory::Config))?;
+
+        folders
+            .into_iter()
+            .map(|value| value.as_str())
+            .collect::<Option<Vec<_>>>()
+            .ok_or(Error::from_string("corrupt folders list", ErrorCategory::Config))
+    }
+
+
     /// Query git parameter by its name
     fn query_git_parameter(&self, parameter: &str) -> Result<&str> {
-        let section = self.query_git_section()?;
+        let section = self.query_section(MM_GIT_KEY)?;
+
         let use_default = section
             .get(MM_GIT_USE_DEFAULT_KEY)
             .unwrap_or(&sj::Value::Bool(false));
@@ -112,10 +136,10 @@ impl Config {
 
 
     /// Obtains a reference to the git section inside of current config.
-    fn query_git_section(&self) -> Result<&sj::Value> {
+    fn query_section(&self, name: &str) -> Result<&sj::Value> {
         self.internal
-            .get(MM_GIT_KEY)
-            .ok_or(Error::from_string("missing git section in config", ErrorCategory::Config))
+            .get(name)
+            .ok_or(Error::from_string(format!("missing {} section in config", name), ErrorCategory::Config))
     }
 
 
