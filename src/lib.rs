@@ -1,6 +1,6 @@
-//! # mmlib
+//! # libmm
 //! 
-//! `mmlib` is a simple backend for `mm`-based notes apps. 
+//! `libmm` is a simple backend for `mm`-based notes apps. 
 //! Internally it uses `git` to track all the changes step-by-step and allow a user 
 //! to get back to any state.
 
